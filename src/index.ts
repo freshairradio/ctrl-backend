@@ -31,6 +31,8 @@ import fs from "fs";
 // import "./streaming";
 import { start } from "./stream";
 import "./prisma-server";
+import Router from "express-promise-router";
+
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const SPACES_ID = process.env.SPACES_ID;
@@ -55,7 +57,9 @@ function broadcastMessage(msg) {
     }
   });
 }
-const app = express();
+const tapp = express();
+const app = Router();
+tapp.use("/", app);
 app.use(cors());
 app.use(express.json());
 
@@ -822,6 +826,27 @@ app.post(`/v1/shows/:showId/episodes`, checkJwt, async (req, res) => {
   return res.json(episode);
 });
 
+app.post(`/v1/shows`, checkJwt, async (req, res) => {
+  const show = await prisma.show.create({
+    data: {
+      id: v4(),
+      title: req.body.title,
+      slug: req.body.slug,
+      when: {},
+      meta: {},
+      users: {
+        connect: {
+          id: req.user.id
+        }
+      }
+    },
+    include: {
+      users: true
+    }
+  });
+
+  return res.json(show);
+});
 app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
   const users = await prisma.user.update({
     where: {
@@ -856,7 +881,7 @@ start({
     });
   }
 });
-app.listen(process.env.PORT);
+tapp.listen(process.env.PORT);
 // import showRoutes from "./shows/routes";
 
 // import fetch from "node-fetch";

@@ -37,7 +37,9 @@ function startFFMPEGProcess({
     logger.error(`${label} ffmpeg process`, e);
   });
   ffmpeg.stderr.pipe(
-    fs.createWriteStream(`/tmp/ffmpeg-log-${label}-${Date.now()}.txt`)
+    fs.createWriteStream(
+      `/tmp/ffmpeg-log-${encodeURIComponent(label)}-${Date.now()}.txt`
+    )
   );
   //   ffmpeg.stderr.on("data", (d) => {
   //     logger.info(d.toString());
