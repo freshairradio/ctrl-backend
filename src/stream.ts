@@ -217,7 +217,7 @@ export async function start({ port = 7878, onAddListener, onRemoveListener }) {
         const [method, url, version] = meta.split(" ");
         if (method == "GET") {
           socket.write(
-            "HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nConnection: keep-alive\r\n\r\n"
+            "HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nConnection: keep-alive\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
           );
           logger.info("New listener added", rawHeaders);
           socket.write(jingle);
