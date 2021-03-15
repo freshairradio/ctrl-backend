@@ -191,7 +191,10 @@ app.get(`/v1/auth/discord`, async (req, res) => {
           });
         }
         njwt.sign(
-          { id: existing.id, roles: existing.roles.map((r) => r.name) },
+          {
+            id: existing.id,
+            roles: (existing?.roles ?? []).map((r) => r.name)
+          },
           process.env.JWT_SECRET,
           {
             algorithm: "HS256",
@@ -332,7 +335,7 @@ app.post(`/v1/auth/login`, async (req, res) => {
     )
   ) {
     njwt.sign(
-      { id: user.id, roles: user.roles.map((r) => r.name) },
+      { id: user.id, roles: (user?.roles ?? []).map((r) => r.name) },
       process.env.JWT_SECRET,
       {
         algorithm: "HS256",
