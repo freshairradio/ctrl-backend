@@ -9,7 +9,7 @@ on:
 
 env:
   # TODO: Change variable to your image's name.
-  IMAGE_NAME: api
+  IMAGE_NAME: ctrl-backend
 
 jobs:
   # Push image to GitHub Packages.
