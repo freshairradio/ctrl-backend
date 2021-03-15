@@ -1,0 +1,17 @@
+version: "3.6"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: ${PORT}
+      WORKER: "https://media-worker.freshair.radio/process"
+      SELF: http://localhost
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./:/app

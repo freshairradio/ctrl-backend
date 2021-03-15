@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Episode {
+  id          String    @id @db.Uuid
+  title       String?
+  description String?
+  slug        String?   @unique
+  audio       String?
+  meta        Json?
+  scheduling  Json?
+  created     DateTime? @db.Timestamp(6)
+  updated     DateTime? @db.Timestamp(6)
+  Show        Show      @relation(fields: [showId], references: [id])
+  showId      String    @db.Uuid
+}
+
+model Credential {
+  id     String @id @db.Uuid
+  type   String
+  data   Json
+  User   User   @relation(fields: [userId], references: [id])
+  userId String @db.Uuid
+}
+
+model User {
+  id          String       @id @db.Uuid
+  email       String       @unique
+  credentials Credential[]
+  details     Json?
+  created     DateTime?    @db.Timestamp(6)
+  updated     DateTime?    @db.Timestamp(6)
+  shows       Show[]
+  roles       Role[]
+}
+
+model Role {
+  id    String @id @db.Uuid
+  name  String
+  users User[]
+}
+
+model Show {
+  id          String    @id @db.Uuid
+  title       String?
+  description String?
+  slug        String?   @unique
+  picture     String?
+  when        Json?
+  meta        Json?
+  created     DateTime? @db.Timestamp(6)
+  updated     DateTime? @db.Timestamp(6)
+  episodes    Episode[]
+  users       User[]
+}

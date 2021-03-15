@@ -1,0 +1,3 @@
+# Freshair API
+
+Typescript + Express are the main components of this one. To run it locally, install Docker and run `docker-compose up`, which will rebuild on file changes etc...
