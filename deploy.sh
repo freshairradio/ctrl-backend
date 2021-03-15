@@ -3,6 +3,7 @@ docker run -d \
     -p 0:7878 \
     -p 0:8432 \
     -p 0:8080 \
+    -p 0:4437 \
     -v $PWD/offair/eighties:/app/eighties \
     -v $PWD/recordings:/app/recordings \
     --network traefik-net \
@@ -19,6 +20,11 @@ docker run -d \
     --label "traefik.http.routers.ws.entrypoints=websecure" \
     --label "traefik.http.routers.ws.service=ws-service" \
     --label "traefik.http.routers.ws.rule=Host(\`ws.freshair.radio\`)" \
+    --label "traefik.http.services.prisma-service.loadbalancer.server.port=4437" \
+    --label "traefik.http.routers.prisma.entrypoints=websecure" \
+    --label "traefik.http.routers.prisma.service=prisma-service" \
+    --label "traefik.http.routers.prisma.rule=Host(\`prisma.freshair.radio\`)" \
+    --label "traefik.http.routers.prisma.middlewares=auth" \
     --label "com.centurylinklabs.watchtower.enable=true" \
     --env-file $PWD/env/ctrl-backend.env \
     ghcr.io/freshairradio/ctrl-backend:latest

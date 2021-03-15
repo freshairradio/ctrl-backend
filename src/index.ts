@@ -30,6 +30,7 @@ import fetch from "node-fetch";
 import fs from "fs";
 // import "./streaming";
 import { start } from "./stream";
+import "./prisma-server";
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const SPACES_ID = process.env.SPACES_ID;
