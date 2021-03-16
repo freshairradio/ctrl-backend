@@ -778,6 +778,23 @@ app.post(`/v1/reprocess/:eid`, checkJwt, async (req, res) => {
     });
 });
 
+app.put(`/v1/raw/:episodeId`, checkJwt, async (req, res) => {
+  const episode = await prisma.episode.update({
+    where: {
+      id: req.params.episodeId
+    },
+    data: {
+      title: req.body.title,
+      description: req.body.description,
+      scheduling: req.body.scheduling,
+      audio: req.body.audio,
+      meta: req.body.meta
+    }
+  });
+
+  return res.json(episode);
+});
+
 app.put(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
   console.log(req.body.audio);
   const existing = await prisma.episode.findUnique({
