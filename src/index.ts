@@ -253,7 +253,7 @@ app.get(`/v1/public/shows/`, async (req, res) => {
 });
 app.get(`/v1/public/shows/:slug`, async (req, res) => {
   return res.json(
-    await prisma.show.findMany({
+    await prisma.show.findUnique({
       where: {
         slug: req.params.slug
       },

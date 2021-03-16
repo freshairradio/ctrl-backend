@@ -25,6 +25,9 @@ docker run -d \
     --label "traefik.http.routers.prisma.service=prisma-service" \
     --label "traefik.http.routers.prisma.rule=Host(\`prisma.freshair.radio\`)" \
     --label "traefik.http.routers.prisma.middlewares=auth" \
+    --label "traefik.http.routers.streaming.middlewares=cors" \
+    --label "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,POST" \
+    --label "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=*" \
     --label "com.centurylinklabs.watchtower.enable=true" \
     --env-file $PWD/env/ctrl-backend.env \
     ghcr.io/freshairradio/ctrl-backend:latest
