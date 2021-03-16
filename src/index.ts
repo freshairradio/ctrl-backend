@@ -1,5 +1,4 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import jwt from "express-jwt";
 import njwt from "jsonwebtoken";
@@ -9,7 +8,6 @@ import mime from "mime-types";
 import axios from "axios";
 import jwtAuthz from "express-jwt-authz";
 import jwksRsa from "jwks-rsa";
-import showRoutes from "./shows/routes";
 import bcrypt from "bcrypt";
 import { URLSearchParams } from "url";
 import moment from "moment";
@@ -33,12 +31,11 @@ import { start } from "./stream";
 import "./prisma-server";
 import Router from "express-promise-router";
 import logger from "./logger";
-
+import prisma from "./prisma.ts";
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const SPACES_ID = process.env.SPACES_ID;
 const SPACES_SECRET = process.env.SPACES_SECRET;
-const prisma = new PrismaClient();
 const EP = new AWS.Endpoint("nyc3.digitaloceanspaces.com");
 const s3 = new AWS.S3({
   endpoint: EP,
@@ -906,7 +903,6 @@ app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
   return res.json(users);
 });
 
-app.use(`/v1/shows`, checkJwt, showRoutes);
 let listeners = 0;
 start({
   onAddListener: (l) => {

@@ -5,9 +5,8 @@ import { sample } from "lodash";
 import moment from "moment";
 import logger from "./logger";
 import { pipe, unpipe, playStream } from "./discord";
-import { PrismaClient } from "@prisma/client";
+import prisma from "./prisma";
 const jingle = fs.readFileSync("./ident.mp3");
-const prisma = new PrismaClient();
 
 function startFFMPEGProcess({
   from = "pipe:0",
