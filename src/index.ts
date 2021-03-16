@@ -752,7 +752,7 @@ const processAudio = (url) => {
   });
 };
 
-app.get(`/v1/reprocess/:eid`, checkJwt, async (req, res) => {
+app.post(`/v1/reprocess/:eid`, checkJwt, async (req, res) => {
   await prisma.episode
     .findUnique({ where: { id: req.params.eid }, include: { Show: true } })
     .then(async (episode) => {
