@@ -38,6 +38,19 @@ model User {
   updated     DateTime?    @db.Timestamp(6)
   shows       Show[]
   roles       Role[]
+  station     Station?     @relation(fields: [stationId], references: [id])
+  stationId   String?      @db.Uuid
+}
+
+model Station {
+  id       String  @id @db.Uuid
+  name     String  @unique
+  approved Boolean
+  picture  String
+  meta     Json
+  colour   String
+  stream   String
+  members  User[]
 }
 
 model Role {

@@ -31,7 +31,7 @@ import { start } from "./stream";
 import "./prisma-server";
 import Router from "express-promise-router";
 import logger from "./logger";
-import prisma from "./prisma.ts";
+import prisma from "./prisma";
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const SPACES_ID = process.env.SPACES_ID;
@@ -439,6 +439,54 @@ app.get(`/v1/my/shows`, checkJwt, async (req, res) => {
   });
   return res.json(shows);
 });
+
+app.get(`/v1/my/station`, checkJwt, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: req.user.id
+    },
+    include: {
+      station: true
+    }
+  });
+  if (!user?.station) {
+    return res.status(404).json({
+      error: true,
+      message: "No station found — please email manager@freshair.radio"
+    });
+  }
+  return res.json(user.station);
+});
+app.put(`/v1/my/station`, checkJwt, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: req.user.id
+    },
+    include: {
+      station: true
+    }
+  });
+  if (!user?.station) {
+    return res.status(404).json({
+      error: true,
+      message: "No station found — please email manager@freshair.radio"
+    });
+  }
+  let update = await prisma.station.update({
+    where: {
+      id: user.stationId
+    },
+    data: {
+      name: req.body.name,
+      picture: req.body.picture,
+      meta: req.body.meta,
+      colour: req.body.colour,
+      stream: req.body.stream
+    }
+  });
+  return res.json(update);
+});
+
 app.get(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   const show = await prisma.show.findUnique({
     where: {
