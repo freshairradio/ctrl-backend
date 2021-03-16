@@ -752,32 +752,27 @@ const processAudio = (url) => {
   });
 };
 
-app.get(`/v1/reprocess`, checkJwt, async (req, res) => {
+app.get(`/v1/reprocess/:eid`, checkJwt, async (req, res) => {
   await prisma.episode
-    .findMany({ include: { Show: true } })
-    .then(async (episodes) => {
-      return await Promise.all(
-        episodes.map(async (e) => {
-          console.log("Episode", e.id);
-          let meta = { published: false };
-          await processAudio(e.audio).then(async (r: any) => {
-            console.log(
-              await prisma.episode.update({
-                where: {
-                  id: e.id
-                },
-                data: {
-                  meta: {
-                    audio: r.audio,
-                    length: r.duration
-                  }
-                }
-              })
-            );
-            setTimeout(() => updateRSSFeeds(e.Show.slug), 10000);
-          });
-        })
-      );
+    .findUnique({ where: { id: req.params.eid }, include: { Show: true } })
+    .then(async (episode) => {
+      console.log("Episode", req.params.eid);
+      await processAudio(episode.audio).then(async (r: any) => {
+        console.log(
+          await prisma.episode.update({
+            where: {
+              id: episode.id
+            },
+            data: {
+              meta: {
+                audio: r.audio,
+                length: r.duration
+              }
+            }
+          })
+        );
+        setTimeout(() => updateRSSFeeds(episode.Show.slug), 10000);
+      });
     });
 });
 
