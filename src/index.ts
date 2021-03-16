@@ -439,7 +439,11 @@ app.get(`/v1/my/shows`, checkJwt, async (req, res) => {
   });
   return res.json(shows);
 });
+app.get(`/v1/public/stations`, async (req, res) => {
+  const stations = await prisma.station.findMany({});
 
+  return res.json(stations);
+});
 app.get(`/v1/my/station`, checkJwt, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: {
