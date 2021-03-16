@@ -108,66 +108,51 @@ ffmpeg.stdout.pipe(
 );
 const SILENCE_FRAME = Buffer.from([0xf8, 0xff, 0xfe]);
 
-const Silence = new Readable({
-  read() {
+class Silence extends Readable {
+  _read() {
     this.push(SILENCE_FRAME);
   }
-});
+}
 silenceClient.once("ready", () => {
-  silenceClient.channels.fetch(process.env.LIVE_CHANNEL).then(async (ch) => {
-    const connection = await ch.join();
-    connection.play(Silence);
+  silenceClient.on("message", (message) => {
+    if (message.content == "!listen") {
+      silenceClient.channels
+        .fetch(process.env.LIVE_CHANNEL)
+        .then(async (ch) => {
+          const connection = await ch.join();
+          connection.play(new Silence(), { type: "opus" });
+        });
+    }
   });
 });
 client.once("ready", () => {
   logger.info("Discord connection ready!");
+  client.on("message", async (message) => {
+    if (message.content == "!listen") {
+      let speakers = [];
 
-  client.channels.fetch(process.env.LIVE_CHANNEL).then(async (ch) => {
-    const connection = await ch.join();
+      await client.channels.fetch(process.env.LIVE_CHANNEL).then(async (ch) => {
+        const connection = await ch.join();
 
-    ch.members.forEach((member) => {
-      if (member.user.username === "FreshBot") {
-        return;
-      }
-      logger.info(
-        `Listening to ${member.user.username}#${member.user.discriminator}`
-      );
+        ch.members.forEach((member) => {
+          if (member.user.username === "FreshBot") {
+            return;
+          }
+          logger.info(
+            `Listening to ${member.user.username}#${member.user.discriminator}`
+          );
+          speakers.push(`${member.user.username}`);
 
-      const audio = connection.receiver.createStream(member, {
-        mode: "pcm",
-        end: "manual"
+          const audio = connection.receiver.createStream(member, {
+            mode: "pcm",
+            end: "manual"
+          });
+          mixer.addClient(audio);
+        });
       });
-      mixer.addClient(audio);
-    });
+      message.channel.send("Users added to stream: " + speakers.join(", "));
+    }
   });
-});
-client.on("voiceStateUpdate", (oldMember, newMember) => {
-  if (newMember == null) {
-    return;
-  }
-
-  // If a user disconnects from a channel or joins a voice channel from a text channel
-  const newUserChannelName =
-    newMember.channel == null ? "" : newMember.channel.name;
-  const oldUserChannelName =
-    oldMember.channel == null ? "" : oldMember.channel.name;
-
-  if (newUserChannelName === "General" && oldUserChannelName !== "General") {
-    newMember.channel.join().then((connection) => {
-      if (newMember.member.user.username === "FreshBot") {
-        return;
-      }
-      logger.info(
-        `Listening to ${newMember.member.user.username}#${newMember.member.user.discriminator}`
-      );
-
-      const audio = connection.receiver.createStream(newMember.member, {
-        mode: "pcm",
-        end: "manual"
-      });
-      mixer.addClient(audio);
-    });
-  }
 });
 
 export async function playStream(source) {
