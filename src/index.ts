@@ -32,6 +32,7 @@ import fs from "fs";
 import { start } from "./stream";
 import "./prisma-server";
 import Router from "express-promise-router";
+import logger from "./logger";
 
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
@@ -679,6 +680,7 @@ const processAudio = (url) => {
     let duration;
     ffmpeg.stderr
       .on("data", (data) => {
+        logger.info(data.toString());
         if (!duration) {
           ffmpegOutput += data;
           let durationMatch = ffmpegOutput.match(
