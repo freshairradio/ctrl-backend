@@ -16,7 +16,7 @@ docker run -d \
     --label "traefik.http.routers.ctrl.entrypoints=websecure" \
     --label "traefik.http.routers.ctrl.service=ctrl-service" \
     --label "traefik.http.routers.ctrl.rule=Host(\`data.freshair.radio\`)" \
-    --label "traefik.http.services.ws-service.loadbalancer.server.port=8432" \
+    --label "traefik.http.services.ws-service.loadbalancer.server.port=8080" \
     --label "traefik.http.routers.ws.entrypoints=websecure" \
     --label "traefik.http.routers.ws.service=ws-service" \
     --label "traefik.http.routers.ws.rule=Host(\`ws.freshair.radio\`)" \

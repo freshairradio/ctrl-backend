@@ -114,7 +114,7 @@ const Silence = new Readable({
   }
 });
 silenceClient.once("ready", () => {
-  silenceClient.channels.fetch("818269575673020450").then(async (ch) => {
+  silenceClient.channels.fetch(process.env.LIVE_CHANNEL).then(async (ch) => {
     const connection = await ch.join();
     connection.play(Silence);
   });
@@ -122,7 +122,7 @@ silenceClient.once("ready", () => {
 client.once("ready", () => {
   logger.info("Discord connection ready!");
 
-  client.channels.fetch("818269575673020450").then(async (ch) => {
+  client.channels.fetch(process.env.LIVE_CHANNEL).then(async (ch) => {
     const connection = await ch.join();
 
     ch.members.forEach((member) => {
@@ -172,13 +172,15 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 
 export async function playStream(source) {
   broadcastClient.once("ready", () => {
-    broadcastClient.channels.fetch("820780492278202368").then(async (ch) => {
-      const connection = await ch.join();
-      const buffer = new PassThrough();
-      buffer.write(jingle);
-      source.pipe(buffer);
-      connection.play(buffer);
-    });
+    broadcastClient.channels
+      .fetch(process.env.BROADCAST_CHANNEL)
+      .then(async (ch) => {
+        const connection = await ch.join();
+        const buffer = new PassThrough();
+        buffer.write(jingle);
+        source.pipe(buffer);
+        connection.play(buffer);
+      });
   });
 }
 export async function pipe(destination) {
