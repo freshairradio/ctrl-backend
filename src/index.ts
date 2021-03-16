@@ -752,6 +752,35 @@ const processAudio = (url) => {
   });
 };
 
+app.get(`/v1/reprocess`, checkJwt, async (req, res) => {
+  await prisma.episode
+    .findMany({ include: { Show: true } })
+    .then(async (episodes) => {
+      return await Promise.all(
+        episodes.map(async (e) => {
+          console.log("Episode", e.id);
+          let meta = { published: false };
+          await processAudio(e.audio).then(async (r: any) => {
+            console.log(
+              await prisma.episode.update({
+                where: {
+                  id: e.id
+                },
+                data: {
+                  meta: {
+                    audio: r.audio,
+                    length: r.duration
+                  }
+                }
+              })
+            );
+            setTimeout(() => updateRSSFeeds(e.Show.slug), 10000);
+          });
+        })
+      );
+    });
+});
+
 app.put(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
   console.log(req.body.audio);
   const existing = await prisma.episode.findUnique({
