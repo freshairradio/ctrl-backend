@@ -218,16 +218,16 @@ export async function start({ port = 7878, onAddListener, onRemoveListener }) {
           socket.write(
             "HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nConnection: keep-alive\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
           );
-          logger.info("New listener added" + rawHeaders);
+          logger.info("New listener added " + JSON.stringify(rawHeaders));
           socket.write(jingle);
           muxer.stdout.pipe(socket, { end: false });
           onAddListener(rawHeaders);
           socket.on("error", () => {
-            logger.error("Listener error" + rawHeaders);
+            logger.error("Listener error " + JSON.stringify(rawHeaders));
             onRemoveListener(rawHeaders);
           });
           socket.on("end", () => {
-            logger.info("Listener close" + rawHeaders);
+            logger.info("Listener close " + JSON.stringify(rawHeaders));
             onRemoveListener(rawHeaders);
           });
         }
