@@ -6,7 +6,7 @@
   "scripts": {
     "db-init": "ENTRYPOINT=src/construct.ts rollup -c && node dist/construct.js",
     "dev": "ENTRYPOINT=src/index.ts rollup -c -w",
-    "test-stream": "ENTRYPOINT=src/live.ts rollup -c -w",
+    "test-stream": "ENTRYPOINT=src/test-rtmp.ts rollup -c -w",
     "build": "ENTRYPOINT=src/index.ts rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -28,6 +28,8 @@
   },
   "dependencies": {
     "@discordjs/opus": "^0.4.0",
+    "@mediafish/flv": "^0.2.0",
+    "@mediafish/rtmp-server": "^0.1.2",
     "@octokit/core": "^3.1.2",
     "@prisma/client": "^2.17.0",
     "@prisma/studio": "^0.358.0",
@@ -50,6 +52,7 @@
     "md5": "^2.3.0",
     "moment": "^2.27.0",
     "node-fetch": "^2.6.1",
+    "node-media-server": "^2.2.4",
     "pg": "^8.3.0",
     "pino": "^6.11.2",
     "pino-colada": "^2.1.0",

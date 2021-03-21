@@ -4,7 +4,8 @@ import { spawn } from "child_process";
 import { sample } from "lodash";
 import moment from "moment";
 import logger from "./logger";
-import { pipe, unpipe, playStream } from "./discord";
+import { pipe, unpipe } from "./rtmp";
+// import { playStream } from "./discord";
 import prisma from "./prisma";
 const jingle = fs.readFileSync("./ident.mp3");
 
@@ -126,7 +127,7 @@ muxer.stdout.on("error", (e) => {
 muxer.stdout.pipe(
   fs.createWriteStream(`./recordings/broadcast-${Date.now()}.mp3`)
 );
-playStream(muxer.stdout);
+// playStream(muxer.stdout);
 const State = {
   LIVE: Symbol("live"),
   OFFAIR: Symbol("offair"),
