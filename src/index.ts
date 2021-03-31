@@ -249,6 +249,9 @@ app.get(`/v1/auth/discord`, async (req, res) => {
 app.get(`/v1/public/shows/`, async (req, res) => {
   return res.json(await prisma.show.findMany({}));
 });
+app.get(`/v1/public/stations/`, async (req, res) => {
+  return res.json(await prisma.station.findMany({}));
+});
 app.get(`/v1/public/shows/:slug`, async (req, res) => {
   return res.json(
     await prisma.show.findUnique({
