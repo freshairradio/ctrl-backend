@@ -19,7 +19,7 @@ const checkJwt = jwt({
   secret: process.env.JWT_SECRET as string,
   audience: "FreshAir",
   issuer: `https://freshair.radio`,
-  algorithms: ["HS256"]
+  algorithms: ['HS256']
 });
 import crypto from "crypto";
 import md5 from "md5";
