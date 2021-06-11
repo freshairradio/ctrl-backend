@@ -14,4 +14,4 @@ RUN npx prisma generate
 RUN npm run build
 
 EXPOSE ${PORT}
-CMD [ "node", "dist/index.js" ]
+CMD [ "node","--trace-deprecation", "dist/index.js" ]
