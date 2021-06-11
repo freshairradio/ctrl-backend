@@ -1,4 +1,4 @@
-FROM node:buster
+FROM node:14-buster
 RUN apt-get update && apt-get install -y ffmpeg ca-certificates python3 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
