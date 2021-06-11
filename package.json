@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "db-init": "ENTRYPOINT=src/construct.ts rollup -c && node dist/construct.js",
-    "dev": "ENTRYPOINT=src/index.ts rollup -c -w",
+    "dev": "NODE_ENV=dev ENTRYPOINT=src/index.ts rollup -c -w",
     "test-stream": "ENTRYPOINT=src/test-rtmp.ts rollup -c -w",
     "build": "ENTRYPOINT=src/index.ts rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -46,6 +46,7 @@
     "express-jwt": "^6.0.0",
     "express-jwt-authz": "^2.4.1",
     "express-promise-router": "^4.0.1",
+    "firebase-admin": "^9.6.0",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.12.3",
     "lodash": "^4.17.21",

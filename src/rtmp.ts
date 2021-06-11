@@ -53,7 +53,7 @@ const register = () => {
   rtmpStream.stdout.pipe(robustStream, { end: false });
   rtmpStream.once("exit", register);
 };
-register();
+// register();
 
 robustStream.pipe(
   fs.createWriteStream(`./recordings/live-rtmp-${Date.now()}.mp3`)
