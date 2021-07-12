@@ -287,19 +287,10 @@ app.get(`/v1/auth/discord`, async (req, res) => {
 app.get(`/v1/public/shows/`, async (req, res) => {
   return res.json(await prisma.show.findMany({}));
 });
-app.get(`/v1/public/stations/`, async (req, res) => {
-  return res.json(
-    (await prisma.station.findMany({})).map((s) => ({
-      key: s.id,
-      name: s.name,
-      stream: s.stream,
-      append_date: true,
-      colour: s.colour,
-      description: s.meta ? s.meta.description : '',
-      logo: s.picture,
-    }))
-  );
+app.get(`/v1/stations/`, async (req, res) => {
+  return res.json(await prisma.station.findMany({}));
 });
+
 app.get(`/v1/public/shows/:slug`, async (req, res) => {
   return res.json(
     await prisma.show.findUnique({
@@ -423,6 +414,7 @@ app.get(`/v1/auth/me`, checkJwt, async (req, res) => {
       roles: true,
       shows: true,
       credentials: true,
+      stations: true,
     },
   });
   return res.json(user);
@@ -495,52 +487,6 @@ app.get(`/v1/public/stations`, async (req, res) => {
 
   return res.json(stations);
 });
-app.get(`/v1/my/station`, checkJwt, async (req, res) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: req.user.id,
-    },
-    include: {
-      station: true,
-    },
-  });
-  if (!user?.station) {
-    return res.status(404).json({
-      error: true,
-      message: 'No station found — please email manager@freshair.radio',
-    });
-  }
-  return res.json(user.station);
-});
-app.put(`/v1/my/station`, checkJwt, async (req, res) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: req.user.id,
-    },
-    include: {
-      station: true,
-    },
-  });
-  if (!user?.station) {
-    return res.status(404).json({
-      error: true,
-      message: 'No station found — please email manager@freshair.radio',
-    });
-  }
-  let update = await prisma.station.update({
-    where: {
-      id: user.stationId,
-    },
-    data: {
-      name: req.body.name,
-      picture: req.body.picture,
-      meta: req.body.meta,
-      colour: req.body.colour,
-      stream: req.body.stream,
-    },
-  });
-  return res.json(update);
-});
 
 app.get(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   const show = await prisma.show.findUnique({
@@ -592,6 +538,54 @@ app.put(`/v1/shows/:slug`, checkJwt, async (req, res) => {
 
   return res.json(update);
 });
+
+app.get(`/v1/stations/:id`, checkJwt, async (req, res) => {
+  const station = await prisma.station.findUnique({
+    where: {
+      id: req.params.id,
+    },
+    include: {
+      members: true,
+    },
+  });
+  if (!station?.members.find((u) => u.id == req.user.id)) {
+    return res.status(404).json({
+      error: true,
+      message: "Couldn't find that Station",
+    });
+  }
+  return res.json(station);
+});
+app.put(`/v1/stations/:id`, checkJwt, async (req, res) => {
+  const station = await prisma.station.findUnique({
+    where: {
+      id: req.params.id,
+    },
+    include: {
+      members: true,
+    },
+  });
+  if (!station?.members.find((u) => u.id == req.user.id)) {
+    return res.status(404).json({
+      error: true,
+      message: "Couldn't find that Station",
+    });
+  }
+  let update = await prisma.station.update({
+    where: {
+      id: req.params.id,
+    },
+    data: {
+      name: req.body.name,
+      picture: req.body.picture,
+      meta: req.body.meta,
+      colour: req.body.colour,
+      stream: req.body.stream,
+    },
+  });
+  return res.json(update);
+});
+
 app.get(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
   const episode = await prisma.episode.findUnique({
     where: {
@@ -992,6 +986,29 @@ app.post(`/v1/shows`, checkJwt, async (req, res) => {
   });
 
   return res.json(show);
+});
+app.post(`/v1/stations`, checkJwt, async (req, res) => {
+  const station = await prisma.station.create({
+    data: {
+      id: v4(),
+      name: req.body.name ?? '',
+      approved: false,
+      picture: '',
+      meta: {},
+      colour: '',
+      stream: '',
+      members: {
+        connect: {
+          id: req.user.id,
+        },
+      },
+    },
+    include: {
+      members: true,
+    },
+  });
+
+  return res.json(station);
 });
 app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
   const users = await prisma.user.update({

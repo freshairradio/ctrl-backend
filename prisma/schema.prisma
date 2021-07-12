@@ -39,13 +39,12 @@ model User {
   updated     DateTime?    @db.Timestamp(6)
   shows       Show[]
   roles       Role[]
-  station     Station?     @relation(fields: [stationId], references: [id])
-  stationId   String?      @db.Uuid
+  stations    Station[]
 }
 
 model Station {
   id       String  @id @db.Uuid
-  name     String  @unique
+  name     String
   approved Boolean
   picture  String
   meta     Json
