@@ -1029,7 +1029,7 @@ app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
 app.post(`/v1/my/stations`, checkJwt, async (req, res) => {
   const user = await prisma.user.update({
     where: {
-      id: req.params.id,
+      id: req.user.id,
     },
     data: {
       stations: {
