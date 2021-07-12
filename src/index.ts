@@ -1026,6 +1026,21 @@ app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
   return res.json(users);
 });
 
+app.post(`/v1/my/stations`, checkJwt, async (req, res) => {
+  const user = await prisma.user.update({
+    where: {
+      id: req.params.id,
+    },
+    data: {
+      stations: {
+        connect: {
+          id: req.body.station,
+        },
+      },
+    },
+  });
+  return res.json(user);
+});
 let listeners = 0;
 start({
   onAddListener: (l) => {
