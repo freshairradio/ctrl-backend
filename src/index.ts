@@ -801,7 +801,7 @@ const updateRSSFeeds = throttle(async (slug: string) => {
     let rss = await generateRSSFeed(show);
 
     const { data, headers } = await axios.get(
-      `https://imgproxy.freshair.radio/signature/fill/2000/2000/sm/1/plain/${show.picture}@jpg`,
+      `https://imgproxy.freshair.radio/signature/watermark:1:nowe:0:0:0.3/rs:fill:2000:2000:1/g:sm/plain/${show.picture}@jpg`,
       {
         responseType: 'arraybuffer'
       }
