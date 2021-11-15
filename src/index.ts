@@ -578,7 +578,7 @@ app.post(`/v1/bulk-raw-shows`, checkJwt, async (req, res) => {
           when: show.when
         }
       });
-      setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
+      setTimeout(() => updateRSSFeeds(show.slug), 10000);
       return ret;
     })
   );
