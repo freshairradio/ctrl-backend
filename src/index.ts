@@ -505,6 +505,51 @@ app.get(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   }
   return res.json(show);
 });
+app.post(`/v1/shows`, checkJwt, async (req, res) => {
+  const show = await prisma.show.create({
+    data: {
+      id: v4(),
+      title: req.body.title,
+      slug: req.body.slug,
+      when: {},
+      meta: {},
+      users: {
+        connect: {
+          id: req.user.id
+        }
+      }
+    },
+    include: {
+      users: true
+    }
+  });
+
+  return res.json(show);
+});
+app.post(`/v1/raw-shows`, checkJwt, async (req, res) => {
+  const show = await prisma.show.create({
+    data: {
+      id: v4(),
+      title: req.body.title,
+      slug: req.body.slug,
+      description: req.body.description,
+      meta: req.body.meta,
+      picture: req.body.picture,
+      when: req.body.when,
+      users: {
+        connect: {
+          id: req.user.id
+        }
+      }
+    },
+    include: {
+      users: true
+    }
+  });
+  setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
+
+  return res.json(show);
+});
 app.put(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   const show = await prisma.show.findUnique({
     where: {
@@ -965,27 +1010,6 @@ app.post(`/v1/shows/:showId/episodes`, checkJwt, async (req, res) => {
   return res.json(episode);
 });
 
-app.post(`/v1/shows`, checkJwt, async (req, res) => {
-  const show = await prisma.show.create({
-    data: {
-      id: v4(),
-      title: req.body.title,
-      slug: req.body.slug,
-      when: {},
-      meta: {},
-      users: {
-        connect: {
-          id: req.user.id
-        }
-      }
-    },
-    include: {
-      users: true
-    }
-  });
-
-  return res.json(show);
-});
 app.post(`/v1/stations`, checkJwt, async (req, res) => {
   const station = await prisma.station.create({
     data: {
