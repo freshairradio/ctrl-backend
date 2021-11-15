@@ -20,7 +20,7 @@ const checkJwt = jwt({
   secret: process.env.JWT_SECRET as string,
   audience: 'FreshAir',
   issuer: `https://freshair.radio`,
-  algorithms: ['HS256'],
+  algorithms: ['HS256']
 });
 import crypto from 'crypto';
 import md5 from 'md5';
@@ -29,7 +29,6 @@ import { spawn } from 'child_process';
 import fetch from 'node-fetch';
 import fs from 'fs';
 // import "./streaming";
-import { start } from './stream';
 import './prisma-server';
 import Router from 'express-promise-router';
 import logger from './logger';
@@ -44,7 +43,7 @@ const s3 = new AWS.S3({
   accessKeyId: SPACES_ID,
   secretAccessKey: SPACES_SECRET,
   region: 'nyc3',
-  signatureVersion: 'v4',
+  signatureVersion: 'v4'
 });
 console.log(process.env.NODE_ENV);
 const wss = new WebSocket.Server({ port: process.env.WS_PORT });
@@ -71,8 +70,8 @@ listenToTweets(async (tweet) => {
     `https://api.twitter.com/2/tweets?ids=${tweet.data.id}&tweet.fields=created_at&expansions=author_id,attachments.media_keys&user.fields=created_at&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width`,
     {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     }
   ).then((r) => r.json());
   const twitterUser = tweetData.includes.users[0].username;
@@ -80,10 +79,10 @@ listenToTweets(async (tweet) => {
     where: {
       meta: {
         equals: {
-          twitter: twitterUser,
-        },
-      },
-    },
+          twitter: twitterUser
+        }
+      }
+    }
   });
   if (!station) {
     logger.error(`Couldn't find station for tweet from ${twitterUser}`);
@@ -93,9 +92,9 @@ listenToTweets(async (tweet) => {
   admin.messaging().send({
     notification: {
       title: station.name,
-      body: tweet.data.text,
+      body: tweet.data.text
     },
-    topic: station.id,
+    topic: station.id
   });
 });
 
@@ -122,55 +121,55 @@ app.get(`/v1/auth/discord`, async (req, res) => {
         grant_type: 'authorization_code',
         redirect_uri: `${process.env.API_HOST}/v1/auth/discord`,
         code: req.query.code as string,
-        scope: 'identify email guilds',
+        scope: 'identify email guilds'
       }),
       {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       }
     );
     if (response.status == 200) {
       const { access_token, token_type } = response.data;
       const info = await axios.get('https://discord.com/api/users/@me', {
-        headers: { Authorization: `${token_type} ${access_token}` },
+        headers: { Authorization: `${token_type} ${access_token}` }
       });
       if (info.status == 200) {
         if (!info.data.verified) {
           throw {
-            emailNotVerified: true,
+            emailNotVerified: true
           };
         }
         let existing = await prisma.user.findUnique({
           where: {
-            email: info.data.email,
+            email: info.data.email
           },
-          include: { credentials: true, roles: true },
+          include: { credentials: true, roles: true }
         });
         if (existing && existing.credentials.find((c) => c.type == 'discord')) {
           await prisma.credential.update({
             where: {
-              id: existing.credentials.find((c) => c.type == 'discord')?.id,
+              id: existing.credentials.find((c) => c.type == 'discord')?.id
             },
             data: {
               data: {
                 auth: response.data,
-                info: info.data,
-              },
-            },
+                info: info.data
+              }
+            }
           });
           await prisma.user.update({
             where: {
-              id: existing.id,
+              id: existing.id
             },
             data: {
               details: {
                 username: info.data.username,
                 avatar:
                   info.data.avatar &&
-                  `https://cdn.discordapp.com/avatars/${info.data.id}/${info.data.avatar}.jpg`,
-              },
-            },
+                  `https://cdn.discordapp.com/avatars/${info.data.id}/${info.data.avatar}.jpg`
+              }
+            }
           });
         } else if (
           existing &&
@@ -182,23 +181,23 @@ app.get(`/v1/auth/discord`, async (req, res) => {
               type: 'discord',
               data: {
                 auth: response.data,
-                info: info.data,
+                info: info.data
               },
-              userId: existing.id,
-            },
+              userId: existing.id
+            }
           });
           await prisma.user.update({
             where: {
-              id: existing.id,
+              id: existing.id
             },
             data: {
               details: {
                 username: info.data.username,
                 avatar:
                   info.data.avatar &&
-                  `https://cdn.discordapp.com/avatars/${info.data.id}/${info.data.avatar}.jpg`,
-              },
-            },
+                  `https://cdn.discordapp.com/avatars/${info.data.id}/${info.data.avatar}.jpg`
+              }
+            }
           });
         } else if (!existing) {
           existing = await prisma.user.create({
@@ -212,35 +211,35 @@ app.get(`/v1/auth/discord`, async (req, res) => {
                     type: 'discord',
                     data: {
                       auth: response.data,
-                      info: info.data,
-                    },
-                  },
-                ],
+                      info: info.data
+                    }
+                  }
+                ]
               },
               details: {
                 username: info.data.username,
                 avatar:
                   info.data.avatar &&
-                  `https://cdn.discordapp.com/avatars/${info.data.id}/${info.data.avatar}.jpg`,
+                  `https://cdn.discordapp.com/avatars/${info.data.id}/${info.data.avatar}.jpg`
               },
               updated: new Date(),
-              created: new Date(),
+              created: new Date()
             },
             include: {
-              credentials: true,
-            },
+              credentials: true
+            }
           });
         }
         njwt.sign(
           {
             id: existing.id,
-            roles: (existing?.roles ?? []).map((r) => r.name),
+            roles: (existing?.roles ?? []).map((r) => r.name)
           },
           process.env.JWT_SECRET,
           {
             algorithm: 'HS256',
             audience: 'FreshAir',
-            issuer: `https://freshair.radio`,
+            issuer: `https://freshair.radio`
           },
           (err, token) => {
             if (err) {
@@ -295,25 +294,25 @@ app.get(`/v1/public/shows/:slug`, async (req, res) => {
   return res.json(
     await prisma.show.findUnique({
       where: {
-        slug: req.params.slug,
+        slug: req.params.slug
       },
       include: {
-        episodes: true,
-      },
+        episodes: true
+      }
     })
   );
 });
 app.post(`/v1/auth/register`, async (req, res) => {
   const existing = await prisma.user.findUnique({
     where: {
-      email: req.body.email,
-    },
+      email: req.body.email
+    }
   });
   if (existing) {
     return res.status(409).json({
       error: true,
       message:
-        'That email is already linked to an account! Try logging in instead?',
+        'That email is already linked to an account! Try logging in instead?'
     });
   }
   const user = await prisma.user.create({
@@ -326,15 +325,15 @@ app.post(`/v1/auth/register`, async (req, res) => {
             id: v4(),
             type: 'email',
             data: {
-              hash: await bcrypt.hash(req.body.password, 12),
-            },
-          },
-        ],
+              hash: await bcrypt.hash(req.body.password, 12)
+            }
+          }
+        ]
       },
       details: req.body.details,
       updated: new Date(),
-      created: new Date(),
-    },
+      created: new Date()
+    }
   });
   njwt.sign(
     { id: user.id, roles: [] },
@@ -342,14 +341,14 @@ app.post(`/v1/auth/register`, async (req, res) => {
     {
       algorithm: 'HS256',
       audience: 'FreshAir',
-      issuer: `https://freshair.radio`,
+      issuer: `https://freshair.radio`
     },
     (err, token) => {
       if (err) {
         return res.status(500).json(err);
       } else {
         return res.json({
-          token,
+          token
         });
       }
     }
@@ -358,18 +357,18 @@ app.post(`/v1/auth/register`, async (req, res) => {
 app.post(`/v1/auth/login`, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: {
-      email: req.body.email,
+      email: req.body.email
     },
     include: {
       credentials: true,
-      roles: true,
-    },
+      roles: true
+    }
   });
   if (!user) {
     return res.status(404).json({
       error: true,
 
-      message: 'User not found',
+      message: 'User not found'
     });
   }
   if (
@@ -385,7 +384,7 @@ app.post(`/v1/auth/login`, async (req, res) => {
       {
         algorithm: 'HS256',
         audience: 'FreshAir',
-        issuer: `https://freshair.radio`,
+        issuer: `https://freshair.radio`
       },
       (err, token) => {
         if (err) {
@@ -393,7 +392,7 @@ app.post(`/v1/auth/login`, async (req, res) => {
           return res.status(500).json({ error: true, trace: err });
         } else {
           return res.json({
-            token,
+            token
           });
         }
       }
@@ -401,21 +400,21 @@ app.post(`/v1/auth/login`, async (req, res) => {
   } else {
     return res.status(401).json({
       error: true,
-      message: 'Incorrect password',
+      message: 'Incorrect password'
     });
   }
 });
 app.get(`/v1/auth/me`, checkJwt, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: {
-      id: req.user.id,
+      id: req.user.id
     },
     include: {
       roles: true,
       shows: true,
       credentials: true,
-      stations: true,
-    },
+      stations: true
+    }
   });
   return res.json(user);
 });
@@ -425,8 +424,8 @@ app.get(`/v1/users`, checkJwt, async (req, res) => {
     include: {
       roles: true,
       shows: true,
-      credentials: true,
-    },
+      credentials: true
+    }
   });
   return res.json(users);
 });
@@ -440,12 +439,12 @@ app.get(`/v1/media-upload`, checkJwt, async (req, res) => {
       'audio/mp3',
       'image/jpg',
       'image/png',
-      'image/jpeg',
+      'image/jpeg'
     ].includes(mimeType)
   ) {
     return res.status(400).json({
       error: true,
-      message: 'Invalid file type',
+      message: 'Invalid file type'
     });
   }
 
@@ -456,14 +455,14 @@ app.get(`/v1/media-upload`, checkJwt, async (req, res) => {
       mimeType == 'audio/mpeg' ? 'mp3' : mime.extension(mimeType) // mime-types classifies audio/mpeg as .mpga, which we don't want
     }`,
     Expires: 60 * 60 * 24, // 1 day
-    ContentType: req.headers['Content-Type'],
+    ContentType: req.headers['Content-Type']
   });
   return res.status(200).json({
     signed: url,
     access: `https://cdn.freshair.radio/media/${id}.${
       mimeType == 'audio/mpeg' ? 'mp3' : mime.extension(mimeType)
     }`,
-    id,
+    id
   });
 });
 
@@ -472,13 +471,13 @@ app.get(`/v1/my/shows`, checkJwt, async (req, res) => {
     where: {
       users: {
         some: {
-          id: req.user.id,
-        },
-      },
+          id: req.user.id
+        }
+      }
     },
     include: {
-      episodes: true,
-    },
+      episodes: true
+    }
   });
   return res.json(shows);
 });
@@ -491,17 +490,17 @@ app.get(`/v1/public/stations`, async (req, res) => {
 app.get(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   const show = await prisma.show.findUnique({
     where: {
-      slug: req.params.slug,
+      slug: req.params.slug
     },
     include: {
       episodes: true,
-      users: true,
-    },
+      users: true
+    }
   });
   if (!show?.users.find((u) => u.id == req.user.id)) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that show",
+      message: "Couldn't find that show"
     });
   }
   return res.json(show);
@@ -509,30 +508,30 @@ app.get(`/v1/shows/:slug`, checkJwt, async (req, res) => {
 app.put(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   const show = await prisma.show.findUnique({
     where: {
-      slug: req.params.slug,
+      slug: req.params.slug
     },
     include: {
       episodes: true,
-      users: true,
-    },
+      users: true
+    }
   });
   if (!show?.users.find((u) => u.id == req.user.id)) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that show",
+      message: "Couldn't find that show"
     });
   }
   let update = await prisma.show.update({
     where: {
-      slug: req.params.slug,
+      slug: req.params.slug
     },
     data: {
       title: req.body.title,
       description: req.body.description,
       meta: req.body.meta,
       picture: req.body.picture,
-      when: req.body.when,
-    },
+      when: req.body.when
+    }
   });
   setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
 
@@ -542,16 +541,16 @@ app.put(`/v1/shows/:slug`, checkJwt, async (req, res) => {
 app.get(`/v1/stations/:id`, checkJwt, async (req, res) => {
   const station = await prisma.station.findUnique({
     where: {
-      id: req.params.id,
+      id: req.params.id
     },
     include: {
-      members: true,
-    },
+      members: true
+    }
   });
   if (!station?.members.find((u) => u.id == req.user.id)) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that Station",
+      message: "Couldn't find that Station"
     });
   }
   return res.json(station);
@@ -559,29 +558,29 @@ app.get(`/v1/stations/:id`, checkJwt, async (req, res) => {
 app.put(`/v1/stations/:id`, checkJwt, async (req, res) => {
   const station = await prisma.station.findUnique({
     where: {
-      id: req.params.id,
+      id: req.params.id
     },
     include: {
-      members: true,
-    },
+      members: true
+    }
   });
   if (!station?.members.find((u) => u.id == req.user.id)) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that Station",
+      message: "Couldn't find that Station"
     });
   }
   let update = await prisma.station.update({
     where: {
-      id: req.params.id,
+      id: req.params.id
     },
     data: {
       name: req.body.name,
       picture: req.body.picture,
       meta: req.body.meta,
       colour: req.body.colour,
-      stream: req.body.stream,
-    },
+      stream: req.body.stream
+    }
   });
   return res.json(update);
 });
@@ -589,18 +588,18 @@ app.put(`/v1/stations/:id`, checkJwt, async (req, res) => {
 app.get(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
   const episode = await prisma.episode.findUnique({
     where: {
-      id: req.params.episodeId,
+      id: req.params.episodeId
     },
     include: {
       Show: {
-        include: { users: true },
-      },
-    },
+        include: { users: true }
+      }
+    }
   });
   if (!episode?.Show?.users.find((u) => u.id == req.user.id)) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that episode",
+      message: "Couldn't find that episode"
     });
   }
   return res.json(episode);
@@ -612,18 +611,18 @@ app.delete(
   async (req, res) => {
     const episode = await prisma.episode.findUnique({
       where: {
-        id: req.params.episodeId,
+        id: req.params.episodeId
       },
       include: {
         Show: {
-          include: { users: true },
-        },
-      },
+          include: { users: true }
+        }
+      }
     });
     if (!episode?.Show?.users.find((u) => u.id == req.user.id)) {
       return res.status(404).json({
         error: true,
-        message: "Couldn't find that episode",
+        message: "Couldn't find that episode"
       });
     }
     return res.json(
@@ -651,7 +650,7 @@ const generateRSSFeed = async (show) => {
       .split(',')
       .filter(Boolean)
       .map((c) => ({ text: c })),
-    itunesImage: `https://freshair.nyc3.digitaloceanspaces.com/rssfeed/${slug}.jpg`,
+    itunesImage: `https://freshair.nyc3.digitaloceanspaces.com/rssfeed/${slug}.jpg`
   });
   await Promise.all(
     episodes
@@ -671,12 +670,12 @@ const generateRSSFeed = async (show) => {
                 'freshair.nyc3.cdn.digitaloceanspaces.com'
               ),
               type: 'audio/mpeg',
-              size: Math.round(meta.length),
+              size: Math.round(meta.length)
             }, // optional enclosure
             date: created, // any format that js Date can parse.
             itunesExplicit: false,
             itunesSummary: description,
-            itunesDuration: Math.round(meta.length),
+            itunesDuration: Math.round(meta.length)
           });
         }
       )
@@ -686,15 +685,15 @@ const generateRSSFeed = async (show) => {
 app.get(`/rss/:slug`, async (req, res) => {
   const show = await prisma.show.findUnique({
     where: {
-      slug: req.params.slug,
+      slug: req.params.slug
     },
-    include: { episodes: true },
+    include: { episodes: true }
   });
 
   if (!show) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that show",
+      message: "Couldn't find that show"
     });
   }
   res.set('Content-Type', 'application/rss+xml');
@@ -710,9 +709,9 @@ const updateRSSFeeds = throttle(async (slug: string) => {
   try {
     const show = await prisma.show.findUnique({
       where: {
-        slug: slug,
+        slug: slug
       },
-      include: { episodes: true },
+      include: { episodes: true }
     });
     if (!show) {
       console.error('RSS generation called for non-existent show', slug);
@@ -724,27 +723,27 @@ const updateRSSFeeds = throttle(async (slug: string) => {
     const { data, headers } = await axios.get(
       `https://imgproxy.freshair.radio/signature/fill/2000/2000/sm/1/plain/${show.picture}@jpg`,
       {
-        responseType: 'arraybuffer',
+        responseType: 'arraybuffer'
       }
     );
     let params = {
       Bucket: 'freshair',
       ACL: 'public-read',
-      ContentType: 'application/rss+xml',
+      ContentType: 'application/rss+xml'
     };
     await s3
       .putObject({
         ...params,
         ContentType: 'image/jpeg',
         Body: data,
-        Key: `rssfeed/${slug}.jpg`,
+        Key: `rssfeed/${slug}.jpg`
       })
       .promise();
     let req = await s3
       .putObject({
         ...params,
         Body: rss,
-        Key: `rssfeed/${slug}.xml`,
+        Key: `rssfeed/${slug}.xml`
       })
       .promise();
     return true;
@@ -773,7 +772,7 @@ const processAudio = (url) => {
       'loudnorm=I=-18:LRA=13:TP=-2',
       '-ac',
       '2',
-      `pipe:1`,
+      `pipe:1`
     ]);
     let ffmpegOutput = '';
     let duration;
@@ -810,7 +809,7 @@ const processAudio = (url) => {
             broadcastMessage({
               type: 'processingUpdate',
               for: url,
-              progress: (progress / duration) * 100,
+              progress: (progress / duration) * 100
             });
           }
         }
@@ -826,14 +825,14 @@ const processAudio = (url) => {
     let params = {
       Bucket: 'freshair',
       ACL: 'public-read',
-      ContentType: 'audio/mpeg',
+      ContentType: 'audio/mpeg'
     };
     const id = v4();
     await s3
       .upload({
         ...params,
         Body: ffmpeg.stdout,
-        Key: `processed_media/mp3/${id}.mp3`,
+        Key: `processed_media/mp3/${id}.mp3`
       })
       .on('httpUploadProgress', (event) => {
         console.log(event);
@@ -842,11 +841,11 @@ const processAudio = (url) => {
     broadcastMessage({
       type: 'processingDone',
       for: url,
-      with: `https://cdn.freshair.radio/processed_media/mp3/${id}.mp3`,
+      with: `https://cdn.freshair.radio/processed_media/mp3/${id}.mp3`
     });
     yes({
       audio: `https://cdn.freshair.radio/processed_media/mp3/${id}.mp3`,
-      duration,
+      duration
     });
   });
 };
@@ -860,14 +859,14 @@ app.post(`/v1/reprocess/:eid`, checkJwt, async (req, res) => {
         console.log(
           await prisma.episode.update({
             where: {
-              id: episode.id,
+              id: episode.id
             },
             data: {
               meta: {
                 audio: r.audio,
-                length: r.duration,
-              },
-            },
+                length: r.duration
+              }
+            }
           })
         );
         setTimeout(() => updateRSSFeeds(episode.Show.slug), 10000);
@@ -878,15 +877,15 @@ app.post(`/v1/reprocess/:eid`, checkJwt, async (req, res) => {
 app.put(`/v1/raw/:episodeId`, checkJwt, async (req, res) => {
   const episode = await prisma.episode.update({
     where: {
-      id: req.params.episodeId,
+      id: req.params.episodeId
     },
     data: {
       title: req.body.title,
       description: req.body.description,
       scheduling: req.body.scheduling,
       audio: req.body.audio,
-      meta: req.body.meta,
-    },
+      meta: req.body.meta
+    }
   });
 
   return res.json(episode);
@@ -896,18 +895,18 @@ app.put(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
   console.log(req.body.audio);
   const existing = await prisma.episode.findUnique({
     where: {
-      id: req.params.episodeId,
+      id: req.params.episodeId
     },
     include: {
       Show: {
-        include: { users: true },
-      },
-    },
+        include: { users: true }
+      }
+    }
   });
   if (!existing || !existing?.Show?.users.find((u) => u.id == req.user.id)) {
     return res.status(404).json({
       error: true,
-      message: "Couldn't find that episode",
+      message: "Couldn't find that episode"
     });
   }
   let meta = existing.meta;
@@ -918,14 +917,14 @@ app.put(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
       console.log(
         await prisma.episode.update({
           where: {
-            id: req.params.episodeId,
+            id: req.params.episodeId
           },
           data: {
             meta: {
               audio: r.audio,
-              length: r.duration,
-            },
-          },
+              length: r.duration
+            }
+          }
         })
       );
       setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
@@ -933,15 +932,15 @@ app.put(`/v1/shows/:slug/episodes/:episodeId`, checkJwt, async (req, res) => {
   }
   const episode = await prisma.episode.update({
     where: {
-      id: req.params.episodeId,
+      id: req.params.episodeId
     },
     data: {
       title: req.body.title,
       description: req.body.description,
       scheduling: req.body.scheduling,
       audio: req.body.audio,
-      meta,
-    },
+      meta
+    }
   });
   setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
 
@@ -953,14 +952,14 @@ app.post(`/v1/shows/:showId/episodes`, checkJwt, async (req, res) => {
       id: v4(),
       Show: {
         connect: {
-          id: req.params.showId,
-        },
+          id: req.params.showId
+        }
       },
       scheduling: { week: null },
       meta: { published: false },
       created: new Date(),
-      updated: new Date(),
-    },
+      updated: new Date()
+    }
   });
 
   return res.json(episode);
@@ -976,13 +975,13 @@ app.post(`/v1/shows`, checkJwt, async (req, res) => {
       meta: {},
       users: {
         connect: {
-          id: req.user.id,
-        },
-      },
+          id: req.user.id
+        }
+      }
     },
     include: {
-      users: true,
-    },
+      users: true
+    }
   });
 
   return res.json(show);
@@ -999,13 +998,13 @@ app.post(`/v1/stations`, checkJwt, async (req, res) => {
       stream: '',
       members: {
         connect: {
-          id: req.user.id,
-        },
-      },
+          id: req.user.id
+        }
+      }
     },
     include: {
-      members: true,
-    },
+      members: true
+    }
   });
 
   return res.json(station);
@@ -1013,15 +1012,15 @@ app.post(`/v1/stations`, checkJwt, async (req, res) => {
 app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
   const users = await prisma.user.update({
     where: {
-      id: req.params.id,
+      id: req.params.id
     },
     data: {
       roles: {
         set: req.body.map((r) => ({
-          id: r,
-        })),
-      },
-    },
+          id: r
+        }))
+      }
+    }
   });
   return res.json(users);
 });
@@ -1029,138 +1028,17 @@ app.put(`/v1/users/:id/roles`, checkJwt, async (req, res) => {
 app.post(`/v1/my/stations`, checkJwt, async (req, res) => {
   const user = await prisma.user.update({
     where: {
-      id: req.user.id,
+      id: req.user.id
     },
     data: {
       stations: {
         connect: {
-          id: req.body.station,
-        },
-      },
-    },
+          id: req.body.station
+        }
+      }
+    }
   });
   return res.json(user);
 });
-let listeners = 0;
-start({
-  onAddListener: (l) => {
-    listeners += 1;
-    broadcastMessage({
-      type: 'listenerUpdate',
-      n: listeners,
-    });
-  },
-  onRemoveListener: (l) => {
-    listeners -= 1;
-    broadcastMessage({
-      type: 'listenerUpdate',
-      n: listeners,
-    });
-  },
-});
+
 tapp.listen(process.env.PORT);
-// import showRoutes from "./shows/routes";
-
-// import fetch from "node-fetch";
-// import { getRSSBySlug, getAllShows, getBySlugPublished } from "./shows/logic";
-// const app = express();
-// import { config } from "dotenv";
-// config();
-// app.use(cors());
-// app.use(express.json());
-// app.get(`/rss/:slug`, async (req, res) => {
-//   res.set("Content-Type", "application/rss+xml");
-//   res.send(await getRSSBySlug(req.params.slug));
-// });
-// app.get(`/public/shows/`, async (req, res) => {
-//   res.send(
-//     (await getAllShows()).filter(
-//       (s) => s.meta && s.meta.active && s.meta.active.includes("2020-21-sem-2")
-//     )
-//   );
-// });
-
-// app.get(`/public/shows/:slug`, async (req, res) => {
-//   res.send(await getBySlugPublished(req.params.slug));
-// });
-// app.use(async (req, res, next) => {
-//   const user = await fetch(`https://identity.freshair.radio/user`, {
-//     headers: {
-//       authorization: req.headers.authorization
-//     }
-//   });
-//   if (user.status != 200) {
-//     return res.status(401).json({ error: "Please provide a valid auth token" });
-//   }
-//   let json = await user.json();
-//   req.userId = json.id;
-//   req.user = json;
-//   return next();
-// });
-// app.use(`/shows`, showRoutes);
-// app.listen(process.env.PORT);
-
-// .map((s) => {
-//   prisma.show
-//     .create({
-//       data: {
-//         id: s.identifier,
-//         title: s.title,
-//         description: s.description,
-//         slug: s.slug,
-//         picture: s.picture,
-//         created: moment(s.created).toDate(),
-//         updated: moment(s.updated).toDate(),
-//         when: {
-//           create: {
-//             id: v4(),
-//             current: true,
-//             title: "Semester 2 2020/21",
-//             day: s.meta.day,
-//             hour: parseInt(s.meta.time.split(":")[0])
-//           }
-//         },
-//         meta: {
-//           byline: s.meta.byline,
-//           category: s.meta.category
-//         },
-//         episodes: {
-//           create: s.episodes.map((e) => ({
-//             id: e.identifier,
-//             title: e.title,
-//             description: e.description,
-//             slug: e.slug,
-//             audio: e.audio,
-//             meta: e.meta,
-//             scheduling: e.scheduling,
-//             created: moment(e.created).toDate(),
-//             updated: moment(e.updated).toDate()
-//           }))
-//         }
-//       },
-//       include: {
-//         when: true,
-//         episodes: true
-//       }
-//     })
-//     .then(console.log);
-// });
-
-// prisma.show.findMany({}).then((s) =>
-//   s.map((show) =>
-//     prisma.show
-//       .update({
-//         where: {
-//           id: show.id
-//         },
-//         data: {
-//           users: {
-//             connect: {
-//               id: "ec117d83-d8e8-4c92-add2-81f26d6b743a"
-//             }
-//           }
-//         }
-//       })
-//       .then()
-//   )
-// );
