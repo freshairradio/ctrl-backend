@@ -553,8 +553,11 @@ app.post(`/v1/raw-shows`, checkJwt, async (req, res) => {
 app.post(`/v1/bulk-raw-shows`, checkJwt, async (req, res) => {
   return await Promise.all(
     req.body.shows.map(async (show) => {
-      let ret = await prisma.show.create({
-        data: {
+      let ret = await prisma.show.upsert({
+        where: {
+          slug: show.slug
+        },
+        create: {
           id: v4(),
           title: show.title,
           slug: show.slug,
@@ -568,8 +571,11 @@ app.post(`/v1/bulk-raw-shows`, checkJwt, async (req, res) => {
             }
           }
         },
-        include: {
-          users: true
+        update: {
+          description: show.description,
+          meta: show.meta,
+          picture: show.picture,
+          when: show.when
         }
       });
       setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
