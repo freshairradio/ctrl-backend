@@ -550,6 +550,33 @@ app.post(`/v1/raw-shows`, checkJwt, async (req, res) => {
 
   return res.json(show);
 });
+app.post(`/v1/bulk-raw-shows`, checkJwt, async (req, res) => {
+  return await Promise.all(
+    req.body.shows.map(async (show) => {
+      let ret = await prisma.show.create({
+        data: {
+          id: v4(),
+          title: show.title,
+          slug: show.slug,
+          description: show.description,
+          meta: show.meta,
+          picture: show.picture,
+          when: show.when,
+          users: {
+            connect: {
+              id: req.user.id
+            }
+          }
+        },
+        include: {
+          users: true
+        }
+      });
+      setTimeout(() => updateRSSFeeds(req.params.slug), 10000);
+      return ret;
+    })
+  );
+});
 app.put(`/v1/shows/:slug`, checkJwt, async (req, res) => {
   const show = await prisma.show.findUnique({
     where: {
