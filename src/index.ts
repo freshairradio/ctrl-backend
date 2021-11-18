@@ -437,6 +437,8 @@ app.get(`/v1/media-upload`, checkJwt, async (req, res) => {
     ![
       'audio/mpeg',
       'audio/mp3',
+      'audio/m4a',
+      'audio/x-m4a',
       'image/jpg',
       'image/png',
       'image/jpeg'
@@ -459,6 +461,7 @@ app.get(`/v1/media-upload`, checkJwt, async (req, res) => {
   });
   return res.status(200).json({
     signed: url,
+    mime: mimeType,
     access: `https://cdn.freshair.radio/media/${id}.${
       mimeType == 'audio/mpeg' ? 'mp3' : mime.extension(mimeType)
     }`,
