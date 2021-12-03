@@ -302,6 +302,18 @@ app.get(`/v1/public/shows/:slug`, async (req, res) => {
     })
   );
 });
+app.get(`/v1/public/episodes/:id`, async (req, res) => {
+  return res.json(
+    await prisma.episode.findUnique({
+      where: {
+        id: req.params.id
+      },
+      include: {
+        Show: true
+      }
+    })
+  );
+});
 app.post(`/v1/auth/register`, async (req, res) => {
   const existing = await prisma.user.findUnique({
     where: {
